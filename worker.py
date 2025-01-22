@@ -103,76 +103,75 @@ def process_verbatim_pipeline(verbatim: Verbatim) -> Verbatim:
     """
     Process the pipeline for a given verbatim message.
     """
-    # try:
-    output_dir = f"./tmp/output_{verbatim.id}"
-    input_csv = f"./tmp/input_{verbatim.id}.csv"
+    try:
+        output_dir = f"./tmp/output_{verbatim.id}"
+        input_csv = f"./tmp/input_{verbatim.id}.csv"
 
 
-    # Create the tmp directory if it doesn't exist
-    os.makedirs("./tmp", exist_ok=True)
+        # Create the tmp directory if it doesn't exist
+        os.makedirs("./tmp", exist_ok=True)
 
-    # Write content to a CSV file
-    with open(input_csv, "w") as csv_file:
-        csv_file.write(verbatim.content)
+        # Write content to a CSV file
+        with open(input_csv, "w") as csv_file:
+            csv_file.write(verbatim.content)
 
-    # LLM queries
-    initial_classification = InitialClassification(input_csv, output_dir)
-    initial_classification.run()
-    few_shot_cot_classification = FewShotCotClassification(input_csv, output_dir)
-    few_shot_cot_classification.run()
+        # LLM queries
+        initial_classification = InitialClassification(input_csv, output_dir)
+        initial_classification.run()
+        few_shot_cot_classification = FewShotCotClassification(input_csv, output_dir)
+        few_shot_cot_classification.run()
 
-    # Consistency evaluation
-    sca_evaluation = ScaEvaluation(output_dir)
-    sca_evaluation.run()
-    lca_evaluation = LcaEvaluation(output_dir)
-    lca_evaluation.run()
-    slca_evaluation = SlcaEvaluation(output_dir)
-    slca_evaluation.run()
+        # Consistency evaluation
+        sca_evaluation = ScaEvaluation(output_dir)
+        sca_evaluation.run()
+        lca_evaluation = LcaEvaluation(output_dir)
+        lca_evaluation.run()
+        slca_evaluation = SlcaEvaluation(output_dir)
+        slca_evaluation.run()
 
-    # Get the result from the output file
-    with open(f"{output_dir}/evaluations/slca/result_1.json", "r") as file:
-        processed_result = json.load(file)
-        processed_result = processed_result["output"]
+        # Get the result from the output file
+        with open(f"{output_dir}/evaluations/slca/result_1.json", "r") as file:
+            processed_result = json.load(file)
+            processed_result = processed_result["output"]
 
-    # Update the Verbatim instance
-    verbatim.result = processed_result
-    verbatim.status = "SUCCESS"
+        # Update the Verbatim instance
+        verbatim.result = processed_result
+        verbatim.status = "SUCCESS"
 
-    # Clean up the tmp directory
-    # os.remove(input_csv)
-    # os.system(f"rm -rf {output_dir}")
+        # Clean up the tmp directory
+        os.remove(input_csv)
+        os.system(f"rm -rf {output_dir}")
 
-    return verbatim
+        return verbatim
 
-    # except Exception as e:
-    #     logger.error(f"Error in processing pipeline: {e}")
-    #     # Return the verbatim with an error status
-    #     verbatim.status = "ERROR"
-    #     return verbatim
+    except Exception as e:
+        logger.error(f"Error in processing pipeline: {e}")
+        # Return the verbatim with an error status
+        verbatim.status = "ERROR"
+        return verbatim
 
 
 def callback(ch, method, properties, body):
     global current_message
-    # try:
-    current_message = {"channel": ch, "method": method, "body": body}
-    message = json.loads(body)
+    try:
+        current_message = {"channel": ch, "method": method, "body": body}
+        message = json.loads(body)
 
-    logger.info(f"Received message: {message}")
+        logger.info(f"Received message: {message}")
 
-    verbatim = Verbatim.from_json(json.loads(message))
-    logger.info(f"Received verbatim: {verbatim}")
-    processed_verbatim = process_verbatim_pipeline(verbatim)
+        verbatim = Verbatim.from_json(json.loads(message))
+        processed_verbatim = process_verbatim_pipeline(verbatim)
 
-    publish_message(WORKER_RESPONSES_QUEUE, processed_verbatim.to_json())
-    logger.info(
-        f"Processed and published result for verbatim ID: {processed_verbatim.id}"
-    )
+        publish_message(WORKER_RESPONSES_QUEUE, processed_verbatim.to_json())
+        logger.info(
+            f"Processed and published result for verbatim ID: {processed_verbatim.id}"
+        )
 
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-    current_message = None  # Clear the current message after processing
-    # except Exception as e:
-    #     logger.error(f"Error processing message: {e}")
-    #     ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        current_message = None  # Clear the current message after processing
+    except Exception as e:
+        logger.error(f"Error processing message: {e}")
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
 
 
 def publish_message(queue, message):
