@@ -1,0 +1,17 @@
+
+# Ignore DS_Store files
+*.DS_Store
+
+**/__pycache__/
+.env
+
+poetry.lock
+
+**/.RData
+**/.Rhistory
+
+# Ignore output directories and files
+output/
+*.out
+output/
+tmp/
