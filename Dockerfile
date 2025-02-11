@@ -14,7 +14,7 @@ RUN poetry cache clear --all pypi
 COPY pyproject.toml README.md ./
 
 # Install project dependencies without dev dependencies
-RUN poetry install --only main
+RUN poetry install --only main --no-root
 
 # Copy all project files into the container
 COPY . .
