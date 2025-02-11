@@ -43,15 +43,19 @@ To configure this project, follow the steps below:
 - **OUTPUT_STRUCTURE_PATH**: The path to the file defining the structure of the LLM's output.
 - **INITIAL_classification_PROMPT_PATH**: The path to the file containing the initial classification prompt.
 - **FEW_SHOT_COT_classification_PROMPT_PATH**: The path to the file containing the few-shot CoT (Chain-of-Thought) classification prompt.
-
+- **RABBITMQ_HOST**: The adress to the RabbitMQ service.
+- **WORKER_REQUESTS_QUEUE**: The name of the RabbitMQ queue for workers requests (where to get the patient feedback)
+- **WORKER_RESPONSES_QUEUE**: The name of the RabbitMQ queue for workers responses (where to publish the classification results)
+- **MAX_RETRIES**: The number of connection tries to RabbitMQ Host before closing the program if not successful.
+- **RETRY_DELAY_SECONDS**: The time between 2 connection tries.
+  
 3. **Save the `.env` file**:  
 After configuring all the necessary variables, save the `.env` file. Your project is now ready to use the correct environment configuration.
 
 ## Run
 
 ```bash
-poetry run python3 worker.py --output-dir=<directory-name> --input-csv=<input-csv-path>
-poetry run python3 worker.py --output-dir=output --input-csv=data/inputs.csv
+poetry run python worker.py
 ```
 The program's output will be in the specified output folder.
 
