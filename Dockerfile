@@ -11,7 +11,7 @@ RUN pip install poetry
 RUN poetry cache clear --all pypi
 
 # Copy Poetry configuration file
-COPY pyproject.toml ./
+COPY pyproject.toml README.md ./
 
 # Install project dependencies without dev dependencies
 RUN poetry install --only main
