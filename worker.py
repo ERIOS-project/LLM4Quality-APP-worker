@@ -4,6 +4,7 @@ import os
 import time
 import logging
 import signal
+from dotenv import load_dotenv
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 from typing import Optional, Dict
@@ -18,12 +19,13 @@ from consistency_llm.llm_queries.initial_classification import InitialClassifica
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# TODO : Refactor to use environment variables
-RABBITMQ_HOST = "localhost"
-WORKER_REQUESTS_QUEUE = "worker_requests"
-WORKER_RESPONSES_QUEUE = "worker_responses"
-MAX_RETRIES = 5
-RETRY_DELAY = 5  # seconds
+# Load .env environment variables
+load_dotenv()
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
+WORKER_REQUESTS_QUEUE = os.getenv("WORKER_REQUESTS_QUEUE")
+WORKER_RESPONSES_QUEUE = os.getenv("WORKER_RESPONSES_QUEUE")
+MAX_RETRIES = int(os.getenv("MAX_RETRIES"))
+RETRY_DELAY_SECONDS = int(os.getenv("RETRY_DELAY_SECONDS"))
 
 # Global variables
 current_message = None
@@ -92,8 +94,8 @@ def connect_to_rabbitmq():
         except pika.exceptions.AMQPConnectionError as e:
             logger.error(f"RabbitMQ connection failed: {e}")
             if attempt < MAX_RETRIES - 1:
-                logger.info(f"Retrying in {RETRY_DELAY} seconds...")
-                time.sleep(RETRY_DELAY)
+                logger.info(f"Retrying in {RETRY_DELAY_SECONDS} seconds...")
+                time.sleep(RETRY_DELAY_SECONDS)
             else:
                 logger.error("Max retries reached. Could not connect to RabbitMQ.")
                 raise
@@ -220,5 +222,3 @@ def main():
 
 if __name__ == "__main__":
     main()
- 
- 
