@@ -22,6 +22,9 @@ logger = logging.getLogger(__name__)
 # Load .env environment variables
 load_dotenv()
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
+RABBITMQ_PORT = os.getenv("RABBITMQ_PORT") or 5672
+RABBITMQ_USERNAME = os.getenv("RABBITMQ_USERNAME") or "guest"
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD") or "guest"
 WORKER_REQUESTS_QUEUE = os.getenv("WORKER_REQUESTS_QUEUE")
 WORKER_RESPONSES_QUEUE = os.getenv("WORKER_RESPONSES_QUEUE")
 MAX_RETRIES = int(os.getenv("MAX_RETRIES"))
@@ -87,7 +90,7 @@ def connect_to_rabbitmq():
                 f"Attempting to connect to RabbitMQ (Attempt {attempt + 1}/{MAX_RETRIES})..."
             )
             connection = pika.BlockingConnection(
-                pika.ConnectionParameters(host=RABBITMQ_HOST)
+                pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT, credentials=pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD))
             )
             logger.info("Successfully connected to RabbitMQ.")
             return connection
